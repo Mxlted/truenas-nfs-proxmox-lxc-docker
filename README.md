@@ -95,23 +95,26 @@ nano /etc/fstab
 Add the following line (replace placeholders with your own details):
 
 ```bash
-<server-ip>:/mnt/<pool>/<dataset>   /mnt/<mount-point>   nfs4  rw,noatime,_netdev,x-systemd.automount,retry=5,timeo=14  0  0
+<server-ip>:/mnt/<pool>/<dataset>   /mnt/<mount-point>   nfs4  rw,noatime,_netdev,x-systemd.automount,noauto,nofail,retry=5,timeo=14  0  0
 ```
 
 ### ⚙️ Explanation
 
-| Parameter | Description |
-|------------|-------------|
-| `<server-ip>:/mnt/<pool>/<dataset>` | The **server IP** and **exported path** of your TrueNAS NFS share |
-| `/mnt/<mount-point>` | The **local mount point** on your Proxmox host |
-| `nfs4` | Specifies the **NFS version** being used |
-| `rw` | Mounts the share with **read/write** access |
-| `noatime` | Prevents the system from updating file access timestamps — improves performance |
-| `_netdev` | Ensures the system waits for the **network to be available** before mounting |
-| `x-systemd.automount` | Allows **on-demand mounting** instead of at boot, reducing boot delays |
-| `retry=5` | Retries mounting up to **5 times** if the connection fails |
-| `timeo=14` | Sets the **timeout** (in tenths of a second) for NFS requests |
-| `0 0` | Disables **dump** and **fsck** for this mount (not needed for NFS) |
+| Parameter                           | Description                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------------- |
+| `<server-ip>:/mnt/<pool>/<dataset>` | The **TrueNAS NFS share** in the format `IP:/mnt/pool/dataset`                  |
+| `/mnt/<mount-point>`                | The **local directory** on your Proxmox host where the share will be mounted    |
+| `nfs4`                              | Specifies the **NFS version 4** protocol                                        |
+| `rw`                                | Mounts the share with **read and write** access                                 |
+| `noatime`                           | Disables updating access timestamps — improves I/O performance                  |
+| `_netdev`                           | Delays mounting until the **network stack** is available                        |
+| `x-systemd.automount`               | Enables **on-demand mounting** instead of at boot, preventing boot hangs        |
+| `noauto`                            | Prevents automatic mounting at boot (automount handles it)                      |
+| `nofail`                            | Allows the system to **boot normally even if the share is unavailable**         |
+| `retry=5`                           | Retries the mount up to **5 times** before giving up                            |
+| `timeo=14`                          | Sets the NFS **timeout** to 1.4 seconds per attempt                             |
+| `0 0`                               | Disables **dump** and **filesystem checks** for this entry (not needed for NFS) |
+
 
 ✅ **Pro tip:** After saving `/etc/fstab`, test the mount immediately without rebooting:
 
