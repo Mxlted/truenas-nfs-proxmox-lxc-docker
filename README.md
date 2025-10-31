@@ -25,6 +25,7 @@ Your specs don’t need to match exactly, but they can help provide context for 
 |------------|----------|
 | **CPU (current)** | Intel Core i3-12100 |
 | **Planned upgrade** | Intel Core i7-12700K *(guide may or may not be updated post-upgrade)* |
+| **OS and Apps drive** | PNY CS3140 4 TB NVMe SSD |
 | **Storage drives** | 3 × WD Red Plus 8 TB HDDs |
 | **Host platform** | Proxmox VE |
 | **TrueNAS deployment** | Running as a **VM** (not an LXC) on the same Proxmox host |
@@ -33,6 +34,7 @@ Your specs don’t need to match exactly, but they can help provide context for 
 | **NFS export settings** | The NFS share uses **mapall** to the user corresponding to **UID 1000**, ensuring consistent ownership and permissions across TrueNAS, Proxmox, LXC, and Docker layers. |
 
 > 🧠 Note: Since TrueNAS runs as a VM with direct disk passthrough, all NFS performance and permission consistency depend on proper passthrough configuration and NFS export settings (especially `mapall`).
+
 
 ---
 
