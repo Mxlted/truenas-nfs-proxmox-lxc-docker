@@ -16,6 +16,25 @@ The focus is on maintaining **consistent file ownership and permissions** (UID/G
 
 ---
 
+## 💭 Personal
+
+My goal with this setup was to build a single, efficient system that could serve as both a NAS and an application host, without needing extra hardware or drives just for apps.
+
+While TrueNAS is excellent for storage and data protection, running it bare metal comes with a major limitation:  
+you cannot install or run apps directly on the boot drive or pool. To add Docker, containers, or other applications, you would need a separate physical drive or pool dedicated to those apps.
+
+Instead of going that route, I chose to run TrueNAS as a virtual machine inside Proxmox.  
+This lets me:
+- Use the Proxmox host for applications, containers, and services such as Docker, Sonarr, and Radarr  
+- Keep TrueNAS as a dedicated NAS focused purely on storage and file sharing  
+- Take advantage of drive passthrough so TrueNAS still has full control over the disks  
+- Treat TrueNAS as a plug-and-play NAS appliance that I can migrate or restore easily
+
+In this configuration, Proxmox handles the apps and workloads, while TrueNAS provides networked NFS storage.  
+This keeps everything reliable, modular, and flexible.
+
+---
+
 ## 🖥️ System Configuration
 
 This setup was built and tested on the following hardware and virtualization configuration.  
@@ -34,7 +53,6 @@ Your specs don’t need to match exactly, but they can help provide context for 
 | **NFS export settings** | The NFS share uses **mapall** to the user corresponding to **UID 1000**, ensuring consistent ownership and permissions across TrueNAS, Proxmox, LXC, and Docker layers. |
 
 > 🧠 Note: Since TrueNAS runs as a VM with direct disk passthrough, all NFS performance and permission consistency depend on proper passthrough configuration and NFS export settings (especially `mapall`).
-
 
 ---
 
@@ -55,7 +73,7 @@ Your specs don’t need to match exactly, but they can help provide context for 
 
 3. Click **Add** to finalize and mount the NFS share in Proxmox.
 
-✅ **Tip:** Verify the NFS share by going to **Datacenter → Storage**, selecting your NFS entry, and checking the **Status** tab — it should show **Active**.
+✅ **Tip:** Verify the NFS share by going to **Datacenter → Storage**, selecting your NFS entry, and checking the **Status** tab. It should show **Active**.
 
 ---
 
