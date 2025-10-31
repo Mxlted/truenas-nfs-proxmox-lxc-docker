@@ -16,6 +16,26 @@ The focus is on maintaining **consistent file ownership and permissions** (UID/G
 
 ---
 
+## 🖥️ System Configuration
+
+This setup was built and tested on the following hardware and virtualization configuration.  
+Your specs don’t need to match exactly, but they can help provide context for performance and behavior.
+
+| Component | Details |
+|------------|----------|
+| **CPU (current)** | Intel Core i3-12100 |
+| **Planned upgrade** | Intel Core i7-12700K *(guide may or may not be updated post-upgrade)* |
+| **Storage drives** | 3 × WD Red Plus 8 TB HDDs |
+| **Host platform** | Proxmox VE |
+| **TrueNAS deployment** | Running as a **VM** (not an LXC) on the same Proxmox host |
+| **Drive configuration** | HDDs are **passed through** directly to the TrueNAS VM |
+| **Shared storage** | TrueNAS NFS share exported to the Proxmox host and bind-mounted into an unprivileged LXC running Docker |
+| **NFS export settings** | The NFS share uses **mapall** to the user corresponding to **UID 1000**, ensuring consistent ownership and permissions across TrueNAS, Proxmox, LXC, and Docker layers. |
+
+> 🧠 Note: Since TrueNAS runs as a VM with direct disk passthrough, all NFS performance and permission consistency depend on proper passthrough configuration and NFS export settings (especially `mapall`).
+
+---
+
 ## 🗄️ Step 1: Add the NFS Share to Proxmox
 
 1. In the **Proxmox Web UI**, navigate to:  
