@@ -9,14 +9,14 @@
 
 ---
 
-## 🧩 Overview
+## Overview
 
 This guide walks through how to mount a **TrueNAS NFS share** to a **Proxmox host**, bind it into an **unprivileged LXC container**, and then allow **Docker** within that container to use the share directly.  
 The focus is on maintaining **consistent file ownership and permissions** (UID/GID = 1000) between TrueNAS, Proxmox, and Docker — enabling seamless shared storage access without permission mismatches or root escalation issues.
 
 ---
 
-## 💭 Personal
+## Personal
 
 My goal with this setup was to build a single, efficient system that could serve as both a NAS and an application host, without needing extra hardware or drives just for apps.
 
@@ -35,7 +35,7 @@ This keeps everything reliable, modular, and flexible.
 
 ---
 
-## 🖥️ System Configuration
+## System Configuration
 
 This setup was built and tested on the following hardware and virtualization configuration.  
 Your specs don’t need to match exactly, but they can help provide context for performance and behavior.
@@ -52,11 +52,11 @@ Your specs don’t need to match exactly, but they can help provide context for 
 | **Shared storage** | TrueNAS NFS share exported to the Proxmox host and bind-mounted into an unprivileged LXC running Docker |
 | **NFS export settings** | The NFS share uses **mapall** to the user corresponding to **UID 1000**, ensuring consistent ownership and permissions across TrueNAS, Proxmox, LXC, and Docker layers. |
 
-> 🧠 Note: Since TrueNAS runs as a VM with direct disk passthrough, all NFS performance and permission consistency depend on proper passthrough configuration and NFS export settings (especially `mapall`).
+> Note: Since TrueNAS runs as a VM with direct disk passthrough, all NFS performance and permission consistency depend on proper passthrough configuration and NFS export settings (especially `mapall`).
 
 ---
 
-## 🗄️ Step 1: Add the NFS Share to Proxmox
+## Step 1: Add the NFS Share to Proxmox
 
 1. In the **Proxmox Web UI**, navigate to:  
    **Datacenter → Storage → Add → NFS**
@@ -73,11 +73,11 @@ Your specs don’t need to match exactly, but they can help provide context for 
 
 3. Click **Add** to finalize and mount the NFS share in Proxmox.
 
-✅ **Tip:** Verify the NFS share by going to **Datacenter → Storage**, selecting your NFS entry, and checking the **Status** tab. It should show **Active**.
+**Tip:** Verify the NFS share by going to **Datacenter → Storage**, selecting your NFS entry, and checking the **Status** tab. It should show **Active**.
 
 ---
 
-## 📁 Step 2: Create a Local Mount Point and Connect NFS via /etc/fstab
+## Step 2: Create a Local Mount Point and Connect NFS via /etc/fstab
 
 Once your NFS share is added to Proxmox, create a local directory where it will be mounted.  
 This directory will act as the access point for the NFS share on the host.
@@ -98,7 +98,7 @@ Add the following line (replace placeholders with your own details):
 <server-ip>:/mnt/<pool>/<dataset>   /mnt/<mount-point>   nfs4  rw,noatime,_netdev,x-systemd.automount,noauto,nofail,retry=5,timeo=14  0  0
 ```
 
-### ⚙️ Explanation
+### Explanation
 
 | Parameter                           | Description                                                                     |
 | ----------------------------------- | ------------------------------------------------------------------------------- |
@@ -116,7 +116,7 @@ Add the following line (replace placeholders with your own details):
 | `0 0`                               | Disables **dump** and **filesystem checks** for this entry (not needed for NFS) |
 
 
-✅ **Pro tip:** After saving `/etc/fstab`, test the mount immediately without rebooting:
+**Pro tip:** After saving `/etc/fstab`, test the mount immediately without rebooting:
 
 ```bash
 mount -a
@@ -124,7 +124,7 @@ mount -a
 
 ---
 
-## 🧩 Step 3: Bind-Mount the Host NFS into the Unprivileged LXC
+## Step 3: Bind-Mount the Host NFS into the Unprivileged LXC
 
 Use `pct set` to attach the host mount (created in Step 2) into your container.
 
@@ -146,9 +146,9 @@ pct stop <ctid> && pct start <ctid>
 
 ---
 
-## 🔐 Step 4: (Advanced) ID Mapping to Preserve UID/GID 1000 for Docker
+## Step 4: (Advanced) ID Mapping to Preserve UID/GID 1000 for Docker
 
-> ⚠️ **Warning:** Modifying user namespace mappings on unprivileged containers can weaken isolation if misconfigured. Proceed only if you understand the implications and have backups.
+> **Warning:** Modifying user namespace mappings on unprivileged containers can weaken isolation if misconfigured. Proceed only if you understand the implications and have backups.
 
 ### 4.1 Allow the host to map UID/GID 1000
 
@@ -196,16 +196,16 @@ pct restart <ctid>
 
 ---
 
-## ⚠️ Step 5: Pre-Create Docker Bind Mount Directories (Avoid Permission Conflicts)
+## Step 5: Pre-Create Docker Bind Mount Directories (Avoid Permission Conflicts)
 
 Before running Docker containers that map volumes to your NFS share, **make sure the directories exist** on the mounted share.  
 Docker tends to **create missing folders as root-mapped 100000**, not as user 1000, which can cause permission issues.
 
-### 🧩 Why This Matters
+### Why This Matters
 
 If Docker creates a directory itself, it inherits shifted UID mappings, resulting in folders owned by `100000:100000` on the host.
 
-### ✅ The Fix
+### The Fix
 
 Create the full folder structure **manually** before starting Docker, and set ownership to user 1000.
 
@@ -229,7 +229,7 @@ permissions will remain consistent across the NFS share.
 
 ---
 
-### ✅ Verification
+### Verification
 
 Inside the container:
 
@@ -241,5 +241,5 @@ touch <container-path>/testfile && ls -l <container-path>/testfile
 
 On the host, confirm ownership appears as `1000:1000`.
 
-> 💡 If ownership doesn’t match, re-check `/etc/subuid`, `/etc/subgid`, and `lxc.idmap` for overlaps or typos.  
+> If ownership doesn’t match, re-check `/etc/subuid`, `/etc/subgid`, and `lxc.idmap` for overlaps or typos.  
 > Also ensure your NFS export isn’t applying `all_squash` or `root_squash`.
